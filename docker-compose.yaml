@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_db
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: db_nombres
+      MYSQL_USER: my_sql
+      MYSQL_PASSWORD: my_sql
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - mynetwork
+    command: --default-authentication-plugin=mysql_native_password
+
+  python:
+    build: .
+    container_name: python_app
+    depends_on:
+      - mysql
+    volumes:
+      - .:/app
+      - /home/ubuntu/.aws/credentials:/root/.aws/credentials
+    networks:
+      - mynetwork
+    command: ["python", "ingesta.py"]
+
+volumes:
+  mysql_data:
+
+networks:
+  mynetwork:
+    driver: bridge
